@@ -97,17 +97,23 @@ public:
      * @param __src
      * @return i64
      */
-    auto evaluate(const std::string &__src) -> i64
+    auto evaluate(const std::string &__src) -> std::tuple<i64, ErrorKind>
     {
-        auto tokenized = this->tokenizer(__src);
+        auto [tokens, err] = this->tokenize(__src);
+
+        if (err != ErrorKind::None)
+            return std::tuple<i64, ErrorKind>(-1, err);
 
         std::cout << "Tokenizing " << __src << std::endl;
-        for (auto &&i : tokenized)
+        for (auto &&i : tokens)
         {
             std::cout << i << std::endl;
         }
 
-        auto [res, err] = this->parse(tokenized);
+        auto [res, err2] = this->parse(tokens);
+
+        if (err != ErrorKind::None)
+            return std::tuple<i64, ErrorKind>(-1, err2);
 
         std::cout << "Evaluating : \n";
         while (!res.empty())
@@ -116,7 +122,7 @@ public:
             res.pop();
         }
 
-        return -1;
+        return std::tuple<i64, ErrorKind>(0, ErrorKind::None);
     }
 
 private:
@@ -126,7 +132,7 @@ private:
      * @param __src
      * @return std::vector<std::Token>
      */
-    auto tokenizer(const std::string &__src) -> std::vector<Token>
+    auto tokenize(const std::string &__src) -> std::tuple<std::vector<Token>, ErrorKind>
     {
         std::vector<std::string> result;
 
@@ -161,9 +167,11 @@ private:
                 tokens.push_back(Token(TokenType::OpenParenthesis));
             else if (token == ")")
                 tokens.push_back(Token(TokenType::CloseParenthesis));
+            else
+                return std::tuple<std::vector<Token>, ErrorKind>(tokens, ErrorKind::SyntaxError);
         }
 
-        return tokens;
+        return std::tuple<std::vector<Token>, ErrorKind>(tokens, ErrorKind::None);
     }
 
     /**
@@ -177,7 +185,9 @@ private:
     {
         std::stack<Token> operator_stack;
         std::stack<Token> output;
-        std::tuple<std::stack<Token>, ErrorKind> ret(output, ErrorKind::SyntaxError);
+
+        if (__src.size() < 2)
+            return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::SyntaxError);
 
         std::cout << "Parsing\n";
         for (auto &token : __src)
@@ -239,10 +249,7 @@ private:
             operator_stack.pop();
         }
 
-        std::get<0>(ret) = output;
-        std::get<1>(ret) = ErrorKind::None;
-
-        return ret;
+        return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::None);
     }
 
     /**
@@ -280,9 +287,14 @@ int main(int argc, char **argv)
     // if (buffer == "exit" || buffer == "Exit")
 
     auto solver = MathSolver();
-    auto result = solver.evaluate(buffer);
+    auto [result, err] = solver.evaluate(buffer);
 
-    std::cout << "Result\t: " << result << std::endl;
+    if (err == ErrorKind::SyntaxError)
+        std::cout << "Error: Syntax Error" << std::endl;
+    else if (err == ErrorKind::ParseIntError)
+        std::cout << "Error: Failed to parse integer value" << std::endl;
+    else
+        std::cout << "Result\t: " << result << std::endl;
 
     return EXIT_SUCCESS;
 }
