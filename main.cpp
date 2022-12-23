@@ -1,3 +1,14 @@
+/**
+ * @file MathSolver
+ * @author UnknownRori (68576836+UnknownRori@users.noreply.github.com)
+ * @brief A simple program to solve simple math expressions
+ * @version 1.0
+ * @date 2022-12-24
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include <iostream>
 #include <stack>
 #include <vector>
@@ -48,6 +59,25 @@ enum ErrorKind
     ParseIntError,
 };
 
+/**
+ * @brief Helper function for popping the stack
+ *
+ * @tparam T
+ * @param stack
+ * @return T
+ */
+template <typename T>
+inline auto pop(std::stack<T> &stack) -> T
+{
+    auto temp = stack.top();
+    stack.pop();
+    return temp;
+}
+
+/**
+ * @brief Class for representing Token
+ *
+ */
 class Token
 {
 private:
@@ -95,7 +125,7 @@ public:
      * @brief Evaluate Math Expressions
      *
      * @param __src
-     * @return i64
+     * @return std::tuple<i64, ErrorKind>
      */
     auto evaluate(const std::string &__src) -> std::tuple<i64, ErrorKind>
     {
@@ -104,33 +134,64 @@ public:
         if (err != ErrorKind::None)
             return std::tuple<i64, ErrorKind>(-1, err);
 
-        std::cout << "Tokenizing " << __src << std::endl;
-        for (auto &&i : tokens)
-        {
-            std::cout << i << std::endl;
-        }
-
         auto [res, err2] = this->parse(tokens);
 
         if (err != ErrorKind::None)
             return std::tuple<i64, ErrorKind>(-1, err2);
 
-        std::cout << "Evaluating : \n";
-        while (!res.empty())
-        {
-            std::cout << res.top() << std::endl;
-            res.pop();
-        }
+        this->calculate(res);
 
-        return std::tuple<i64, ErrorKind>(0, ErrorKind::None);
+        return std::tuple<i64, ErrorKind>(res.top().get_value(), ErrorKind::None);
     }
 
 private:
     /**
+     * @brief Evaluating Shunting Yard Algorithm AST using recursive approach
+     *
+     * @param __src
+     */
+    auto calculate(std::stack<Token> &__src) -> void
+    {
+        auto op1 = pop(__src);
+
+        if (__src.top().get_token() != TokenType::Number)
+            this->calculate(__src);
+
+        auto op2 = pop(__src);
+
+        if (__src.top().get_token() != TokenType::Number)
+            this->calculate(__src);
+
+        auto op3 = pop(__src);
+
+        switch (op1.get_token())
+        {
+        case TokenType::Plus:
+            __src.push(Token(TokenType::Number, op3.get_value() + op2.get_value()));
+            break;
+
+        case TokenType::Subtract:
+            __src.push(Token(TokenType::Number, op3.get_value() - op2.get_value()));
+            break;
+
+        case TokenType::Multiply:
+            __src.push(Token(TokenType::Number, op3.get_value() * op2.get_value()));
+            break;
+
+        case TokenType::Divide:
+            __src.push(Token(TokenType::Number, op3.get_value() / op2.get_value()));
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    /**
      * @brief Split the string into tokens
      *
      * @param __src
-     * @return std::vector<std::Token>
+     * @return std::tuple<std::vector<std::Token>, ErrorKind>
      */
     auto tokenize(const std::string &__src) -> std::tuple<std::vector<Token>, ErrorKind>
     {
@@ -189,10 +250,8 @@ private:
         if (__src.size() < 2)
             return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::SyntaxError);
 
-        std::cout << "Parsing\n";
         for (auto &token : __src)
         {
-            std::cout << token << "\n";
             if (token.get_token() == TokenType::Number)
             {
                 output.push(token);
@@ -241,10 +300,8 @@ private:
             operator_stack.push(token);
         }
 
-        std::cout << "Put all into Out\n";
         while (!operator_stack.empty())
         {
-            std::cout << operator_stack.top() << std::endl;
             output.push(operator_stack.top());
             operator_stack.pop();
         }
