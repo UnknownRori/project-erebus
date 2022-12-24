@@ -146,7 +146,7 @@ public:
         if (err2 != ErrorKind::None)
             return std::tuple<f64, ErrorKind>(-1, err2);
 
-        if (res.size() == 1)
+        if (res.size() == 1 && res.top().get_token() == TokenType::Number)
             return std::tuple<f64, ErrorKind>(pop(res).get_value(), ErrorKind::None);
 
         auto err3 = this->calculate(res);
