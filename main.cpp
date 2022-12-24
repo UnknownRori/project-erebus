@@ -34,6 +34,13 @@ typedef double f32;
 typedef long double f64;
 
 /**
+ * @brief Check if the passed stack is empty, if true it will return IF_TRUE
+ */
+#define CHECK_IF_EMPTY(STACK, IF_TRUE) \
+    if (STACK.empty())                 \
+        return IF_TRUE;
+
+/**
  * @brief Define Type of Token
  *
  */
@@ -139,7 +146,13 @@ public:
         if (err2 != ErrorKind::None)
             return std::tuple<f64, ErrorKind>(-1, err2);
 
-        this->calculate(res);
+        if (res.size() == 1)
+            return std::tuple<f64, ErrorKind>(pop(res).get_value(), ErrorKind::None);
+
+        auto err3 = this->calculate(res);
+
+        if (err3 != ErrorKind::None)
+            return std::tuple<f64, ErrorKind>(-1, err3);
 
         return std::tuple<f64, ErrorKind>(res.top().get_value(), ErrorKind::None);
     }
@@ -150,15 +163,18 @@ private:
      *
      * @param __src
      */
-    auto calculate(std::stack<Token> &__src) -> void
+    auto calculate(std::stack<Token> &__src) -> ErrorKind
     {
+        CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
         auto op1 = pop(__src);
 
+        CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
         if (__src.top().get_token() != TokenType::Number)
             this->calculate(__src);
 
         auto op2 = pop(__src);
 
+        CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
         if (__src.top().get_token() != TokenType::Number)
             this->calculate(__src);
 
@@ -185,6 +201,8 @@ private:
         default:
             break;
         }
+
+        return ErrorKind::None;
     }
 
     /**
@@ -246,9 +264,6 @@ private:
     {
         std::stack<Token> operator_stack;
         std::stack<Token> output;
-
-        if (__src.size() < 2)
-            return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::SyntaxError);
 
         i32 parenthesis_count = 0;
 
