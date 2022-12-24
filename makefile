@@ -1,5 +1,5 @@
 CC = g++
-FLAG = -Wall -Werror -g
+FLAG = -Wall -Werror -g -std=c++2a
 
 MAIN = main.cpp
 OUT = main
