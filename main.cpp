@@ -136,7 +136,7 @@ public:
 
         auto [res, err2] = this->parse(tokens);
 
-        if (err != ErrorKind::None)
+        if (err2 != ErrorKind::None)
             return std::tuple<i64, ErrorKind>(-1, err2);
 
         this->calculate(res);
@@ -250,6 +250,8 @@ private:
         if (__src.size() < 2)
             return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::SyntaxError);
 
+        i32 parenthesis_count = 0;
+
         for (auto &token : __src)
         {
             if (token.get_token() == TokenType::Number)
@@ -261,11 +263,13 @@ private:
             if (token.get_token() == TokenType::OpenParenthesis)
             {
                 operator_stack.push(token);
+                parenthesis_count++;
                 continue;
             }
 
             if (token.get_token() == TokenType::CloseParenthesis)
             {
+                parenthesis_count--;
                 while (true)
                 {
                     if (operator_stack.top().get_token() != TokenType::OpenParenthesis)
@@ -305,6 +309,9 @@ private:
             output.push(operator_stack.top());
             operator_stack.pop();
         }
+
+        if (parenthesis_count != 0)
+            return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::SyntaxError);
 
         return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::None);
     }
