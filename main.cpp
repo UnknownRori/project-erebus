@@ -338,33 +338,40 @@ private:
     }
 };
 
-static inline auto input(std::string &__dst, const char *__msg) -> void;
-
-int main(int argc, char **argv)
-{
-    std::string buffer;
-
-    std::cout << "=== Simple Math Solver ===\n";
-
-    input(buffer, ">> ");
-
-    // if (buffer == "exit" || buffer == "Exit")
-
-    auto solver = MathSolver();
-    auto [result, err] = solver.evaluate(buffer);
-
-    if (err == ErrorKind::SyntaxError)
-        std::cout << "Error: Syntax Error" << std::endl;
-    else if (err == ErrorKind::ParseIntError)
-        std::cout << "Error: Failed to parse integer value" << std::endl;
-    else
-        std::cout << "Result\t: " << result << std::endl;
-
-    return EXIT_SUCCESS;
-}
-
 static inline auto input(std::string &__dst, const char *__msg) -> void
 {
     std::cout << __msg;
     std::getline(std::cin, __dst);
+}
+
+auto main(int argc, char **argv) -> i32
+{
+    std::string buffer;
+
+    std::cout << "===== Simple Math Solver =====\n";
+    std::cout << "Usage : every expression should be seperated by spaces!\n\n";
+
+    while (true)
+    {
+        input(buffer, ">> ");
+
+        if (buffer.find("exit") != std::string::npos)
+            break;
+
+        auto solver = MathSolver();
+        auto [result, err] = solver.evaluate(buffer);
+
+        if (err == ErrorKind::SyntaxError)
+            std::cout << "Error: Syntax Error\n"
+                      << std::endl;
+        else if (err == ErrorKind::ParseIntError)
+            std::cout << "Error: Failed to parse integer value\n"
+                      << std::endl;
+        else
+            std::cout << "Result\t: " << result << "\n\n";
+    }
+
+    std::cout << "\n===Thank you for using this tool!===" << std::endl;
+
+    return EXIT_SUCCESS;
 }
