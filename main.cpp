@@ -15,6 +15,7 @@
 #include <sstream>
 #include <tuple>
 #include <string>
+#include <cmath>
 
 #define EXIT_SUCCESS 0
 
@@ -51,6 +52,7 @@ enum TokenType
     Subtract,
     Multiply,
     Divide,
+    PowerOperator,
     OpenParenthesis,
     CloseParenthesis
 };
@@ -91,16 +93,18 @@ private:
     TokenType m_type;
     i32 m_precedence;
     f64 m_value;
+    bool m_is_left_associativity;
 
 public:
     Token() = default;
     Token(TokenType type, f64 value) : m_type(type), m_value(value) {}
     Token(TokenType type) : m_type(type) {}
-    Token(TokenType type, i32 precedence) : m_type(type), m_precedence(precedence) {}
+    Token(TokenType type, i32 precedence, bool is_left_associativity) : m_type(type), m_precedence(precedence), m_is_left_associativity(is_left_associativity) {}
 
     const TokenType &get_token() const { return this->m_type; }
     const f64 &get_value() const { return this->m_value; }
     const i32 &get_precedence() const { return this->m_precedence; }
+    const bool &is_left_associative() const { return this->m_is_left_associativity; }
 
     friend std::ostream &operator<<(std::ostream &os, const Token &token)
     {
@@ -114,6 +118,8 @@ public:
             os << " '*' ";
         else if (token.m_type == TokenType::Divide)
             os << " '/' ";
+        else if (token.m_type == TokenType::PowerOperator)
+            os << " '^' ";
         else if (token.m_type == TokenType::OpenParenthesis)
             os << " '(' ";
         else if (token.m_type == TokenType::CloseParenthesis)
@@ -198,6 +204,10 @@ private:
             __src.push(Token(TokenType::Number, op3.get_value() / op2.get_value()));
             break;
 
+        case TokenType::PowerOperator:
+            __src.push(Token(TokenType::Number, std::pow(op3.get_value(), op2.get_value())));
+            break;
+
         default:
             break;
         }
@@ -235,13 +245,15 @@ private:
             }
 
             if (token == "+")
-                tokens.push_back(Token(TokenType::Plus, 1));
+                tokens.push_back(Token(TokenType::Plus, 1, true));
             else if (token == "-")
-                tokens.push_back(Token(TokenType::Subtract, 1));
+                tokens.push_back(Token(TokenType::Subtract, 1, true));
             else if (token == "*")
-                tokens.push_back(Token(TokenType::Multiply, 2));
+                tokens.push_back(Token(TokenType::Multiply, 2, true));
             else if (token == "/")
-                tokens.push_back(Token(TokenType::Divide, 2));
+                tokens.push_back(Token(TokenType::Divide, 2, true));
+            else if (token == "^")
+                tokens.push_back(Token(TokenType::PowerOperator, 3, false));
             else if (token == "(")
                 tokens.push_back(Token(TokenType::OpenParenthesis));
             else if (token == ")")
@@ -304,7 +316,7 @@ private:
 
             while (!operator_stack.empty())
             {
-                if (operator_stack.top().get_token() != TokenType::OpenParenthesis && token.get_precedence() < operator_stack.top().get_precedence())
+                if ((operator_stack.top().get_token() != TokenType::OpenParenthesis) && (token.get_precedence() < operator_stack.top().get_precedence() || (token.get_precedence() == operator_stack.top().get_precedence() && token.is_left_associative())))
                 {
 
                     output.push(operator_stack.top());
