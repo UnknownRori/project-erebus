@@ -83,16 +83,16 @@ class Token
 private:
     TokenType m_type;
     i32 m_precedence;
-    i64 m_value;
+    f64 m_value;
 
 public:
     Token() = default;
-    Token(TokenType type, i64 value) : m_type(type), m_value(value) {}
+    Token(TokenType type, f64 value) : m_type(type), m_value(value) {}
     Token(TokenType type) : m_type(type) {}
     Token(TokenType type, i32 precedence) : m_type(type), m_precedence(precedence) {}
 
     const TokenType &get_token() const { return this->m_type; }
-    const i64 &get_value() const { return this->m_value; }
+    const f64 &get_value() const { return this->m_value; }
     const i32 &get_precedence() const { return this->m_precedence; }
 
     friend std::ostream &operator<<(std::ostream &os, const Token &token)
@@ -127,21 +127,21 @@ public:
      * @param __src
      * @return std::tuple<i64, ErrorKind>
      */
-    auto evaluate(const std::string &__src) -> std::tuple<i64, ErrorKind>
+    auto evaluate(const std::string &__src) -> std::tuple<f64, ErrorKind>
     {
         auto [tokens, err] = this->tokenize(__src);
 
         if (err != ErrorKind::None)
-            return std::tuple<i64, ErrorKind>(-1, err);
+            return std::tuple<f64, ErrorKind>(-1, err);
 
         auto [res, err2] = this->parse(tokens);
 
         if (err2 != ErrorKind::None)
-            return std::tuple<i64, ErrorKind>(-1, err2);
+            return std::tuple<f64, ErrorKind>(-1, err2);
 
         this->calculate(res);
 
-        return std::tuple<i64, ErrorKind>(res.top().get_value(), ErrorKind::None);
+        return std::tuple<f64, ErrorKind>(res.top().get_value(), ErrorKind::None);
     }
 
 private:
@@ -322,17 +322,17 @@ private:
      * @param __src
      * @return std::tuple<i64, ErrorKind>
      */
-    auto parse_int(const std::string &__src) -> std::tuple<i64, ErrorKind>
+    auto parse_int(const std::string &__src) -> std::tuple<f64, ErrorKind>
     {
         try
         {
-            i64 result = std::stoll(__src);
-            std::tuple<i64, ErrorKind> ret(result, ErrorKind::None);
+            f64 result = std::stof(__src);
+            std::tuple<f64, ErrorKind> ret(result, ErrorKind::None);
             return ret;
         }
         catch (std::invalid_argument &err)
         {
-            std::tuple<i64, ErrorKind> ret(-1, ErrorKind::ParseIntError);
+            std::tuple<f64, ErrorKind> ret(-1, ErrorKind::ParseIntError);
             return ret;
         }
     }
