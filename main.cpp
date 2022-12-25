@@ -389,7 +389,7 @@ auto main(i32 argc, char **argv) -> i32
             std::cout << "Result\t: " << result << "\n\n";
     }
 
-    std::cout << "===Thank you for using this tool!===" << std::endl;
+    std::cout << "\n===Thank you for using this tool!===" << std::endl;
 
     return EXIT_SUCCESS;
 }
