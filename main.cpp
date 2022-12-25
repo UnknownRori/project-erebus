@@ -34,6 +34,9 @@ typedef int64_t i64;
 typedef double f32;
 typedef long double f64;
 
+template <typename T, typename Y>
+using Result = std::tuple<T, Y>;
+
 /**
  * @brief Check if the passed stack is empty, if true it will return IF_TRUE
  */
@@ -138,29 +141,29 @@ public:
      * @brief Evaluate Math Expressions
      *
      * @param __src
-     * @return std::tuple<i64, ErrorKind>
+     * @return Result<i64, ErrorKind>
      */
-    auto evaluate(const std::string &__src) -> std::tuple<f64, ErrorKind>
+    auto evaluate(const std::string &__src) -> Result<f64, ErrorKind>
     {
         auto [tokens, err] = this->tokenize(__src);
 
         if (err != ErrorKind::None)
-            return std::tuple<f64, ErrorKind>(-1, err);
+            return {-1, err};
 
         auto [res, err2] = this->parse(tokens);
 
         if (err2 != ErrorKind::None)
-            return std::tuple<f64, ErrorKind>(-1, err2);
+            return {-1, err2};
 
         if (res.size() == 1 && res.top().get_token() == TokenType::Number)
-            return std::tuple<f64, ErrorKind>(pop(res).get_value(), ErrorKind::None);
+            return {pop(res).get_value(), ErrorKind::None};
 
         auto err3 = this->calculate(res);
 
         if (err3 != ErrorKind::None)
-            return std::tuple<f64, ErrorKind>(-1, err3);
+            return {-1, err3};
 
-        return std::tuple<f64, ErrorKind>(res.top().get_value(), ErrorKind::None);
+        return {res.top().get_value(), ErrorKind::None};
     }
 
 private:
@@ -219,12 +222,11 @@ private:
      * @brief Split the string into tokens
      *
      * @param __src
-     * @return std::tuple<std::vector<std::Token>, ErrorKind>
+     * @return Result<std::vector<std::Token>, ErrorKind>
      */
-    auto tokenize(const std::string &__src) -> std::tuple<std::vector<Token>, ErrorKind>
+    auto tokenize(const std::string &__src) -> Result<std::vector<Token>, ErrorKind>
     {
         std::vector<std::string> result;
-
         std::stringstream ss(__src);
 
         std::string temp;
@@ -259,10 +261,10 @@ private:
             else if (token == ")")
                 tokens.push_back(Token(TokenType::CloseParenthesis));
             else
-                return std::tuple<std::vector<Token>, ErrorKind>(tokens, ErrorKind::SyntaxError);
+                return {tokens, ErrorKind::SyntaxError};
         }
 
-        return std::tuple<std::vector<Token>, ErrorKind>(tokens, ErrorKind::None);
+        return {tokens, ErrorKind::None};
     }
 
     /**
@@ -270,13 +272,12 @@ private:
      *
      * @param __src
      * @param __dst
-     * @return const std::tuple<std::stack<Token>, ErrorKind>
+     * @return const Result<std::stack<Token>, ErrorKind>
      */
-    auto parse(const std::vector<Token> &__src) -> std::tuple<std::stack<Token>, ErrorKind>
+    auto parse(const std::vector<Token> &__src) -> Result<std::stack<Token>, ErrorKind>
     {
         std::stack<Token> operator_stack;
         std::stack<Token> output;
-
         i32 parenthesis_count = 0;
 
         for (auto &token : __src)
@@ -297,13 +298,12 @@ private:
             if (token.get_token() == TokenType::CloseParenthesis)
             {
                 parenthesis_count--;
+
                 while (true)
                 {
                     if (operator_stack.top().get_token() != TokenType::OpenParenthesis)
                     {
-
-                        output.push(operator_stack.top());
-                        operator_stack.pop();
+                        output.push(pop(operator_stack));
                     }
                     else
                     {
@@ -311,56 +311,50 @@ private:
                         break;
                     }
                 }
+
                 continue;
             }
 
             while (!operator_stack.empty())
             {
-                if ((operator_stack.top().get_token() != TokenType::OpenParenthesis) && (token.get_precedence() < operator_stack.top().get_precedence() || (token.get_precedence() == operator_stack.top().get_precedence() && token.is_left_associative())))
-                {
+                bool is_top_operator_stack_openparenthesis = operator_stack.top().get_token() != TokenType::OpenParenthesis;
+                bool is_token_less_than_operator_stack_top = token.get_precedence() < operator_stack.top().get_precedence();
+                bool is_lf_associative_and_equal_precedence = token.get_precedence() == operator_stack.top().get_precedence() && token.is_left_associative();
 
-                    output.push(operator_stack.top());
-                    operator_stack.pop();
-                }
+                if (is_top_operator_stack_openparenthesis && (is_token_less_than_operator_stack_top || is_lf_associative_and_equal_precedence))
+                    output.push(pop(operator_stack));
                 else
-                {
                     break;
-                }
             }
 
             operator_stack.push(token);
         }
 
         while (!operator_stack.empty())
-        {
-            output.push(operator_stack.top());
-            operator_stack.pop();
-        }
+            output.push(pop(operator_stack));
 
         if (parenthesis_count != 0)
-            return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::SyntaxError);
+            return {output, ErrorKind::SyntaxError};
 
-        return std::tuple<std::stack<Token>, ErrorKind>(output, ErrorKind::None);
+        return {output, ErrorKind::None};
     }
 
     /**
      * @brief Parse string into a i64
      *
      * @param __src
-     * @return std::tuple<i64, ErrorKind>
+     * @return Result<i64, ErrorKind>
      */
-    auto parse_int(const std::string &__src) -> std::tuple<f64, ErrorKind>
+    auto parse_int(const std::string &__src) -> Result<f64, ErrorKind>
     {
         try
         {
             f64 result = std::stof(__src);
-            std::tuple<f64, ErrorKind> ret(result, ErrorKind::None);
-            return ret;
+            return {result, ErrorKind::None};
         }
         catch (std::invalid_argument &err)
         {
-            std::tuple<f64, ErrorKind> ret(-1, ErrorKind::ParseIntError);
-            return ret;
+            return {-1, ErrorKind::ParseIntError};
         }
     }
 };
@@ -371,34 +365,31 @@ static inline auto input(std::string &__dst, const char *__msg) -> void
     std::getline(std::cin, __dst);
 }
 
-auto main(int argc, char **argv) -> i32
+auto main(i32 argc, char **argv) -> i32
 {
-    std::string buffer;
+    std::cout << "===== Simple Math Solver =====\n"
+              << "Usage : every expression should be seperated by spaces!\n\n";
 
-    std::cout << "===== Simple Math Solver =====\n";
-    std::cout << "Usage : every expression should be seperated by spaces!\n\n";
-
+    auto solver = MathSolver();
     while (true)
     {
+        std::string buffer;
         input(buffer, ">> ");
 
         if (buffer.find("exit") != std::string::npos)
             break;
 
-        auto solver = MathSolver();
         auto [result, err] = solver.evaluate(buffer);
 
         if (err == ErrorKind::SyntaxError)
-            std::cout << "Error: Syntax Error\n"
-                      << std::endl;
+            std::cout << "Error: Syntax Error\n\n";
         else if (err == ErrorKind::ParseIntError)
-            std::cout << "Error: Failed to parse integer value\n"
-                      << std::endl;
+            std::cout << "Error: Failed to parse integer value\n\n";
         else
             std::cout << "Result\t: " << result << "\n\n";
     }
 
-    std::cout << "\n===Thank you for using this tool!===" << std::endl;
+    std::cout << "===Thank you for using this tool!===" << std::endl;
 
     return EXIT_SUCCESS;
 }
