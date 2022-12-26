@@ -12,10 +12,10 @@
 #include <iostream>
 #include <stack>
 #include <vector>
-#include <sstream>
 #include <tuple>
 #include <string>
 #include <cmath>
+#include <regex>
 
 #define EXIT_SUCCESS 0
 
@@ -226,19 +226,15 @@ private:
      */
     auto tokenize(const std::string &__src) -> Result<std::vector<Token>, ErrorKind>
     {
-        std::vector<std::string> result;
-        std::stringstream ss(__src);
-
-        std::string temp;
-        while (std::getline(ss, temp, ' '))
-        {
-            if (temp != "")
-                result.push_back(temp);
-        }
+        std::regex my_regex("([a-zA-Z]+)|\\(|\\)|(-?[0-9]+\\.?[0-9]?)|\\*|\\^|\\-|\\+|\\/");
+        auto math_begin = std::sregex_iterator(__src.begin(), __src.end(), my_regex);
+        auto math_end = std::sregex_iterator();
 
         std::vector<Token> tokens;
-        for (const auto &token : result)
+        for (auto i = math_begin; i != math_end; ++i)
         {
+            auto token = (*i).str();
+
             auto [num, err] = this->parse_int(token);
             if (err != ErrorKind::ParseIntError)
             {
