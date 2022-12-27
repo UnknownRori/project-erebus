@@ -17,12 +17,12 @@
 #include <cmath>
 #include <regex>
 
+// Constants
+
 #define EXIT_SUCCESS 0
 
-/**
- * @brief Definition of custom type
- *
- */
+// Custom types
+
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -37,12 +37,16 @@ typedef long double f64;
 template <typename T, typename Y>
 using Result = std::tuple<T, Y>;
 
+// Macros
+
 /**
  * @brief Check if the passed stack is empty, if true it will return IF_TRUE
  */
 #define CHECK_IF_EMPTY(STACK, IF_TRUE) \
     if (STACK.empty())                 \
         return IF_TRUE;
+
+// Enums
 
 /**
  * @brief Define Type of Token
@@ -71,6 +75,8 @@ enum ErrorKind
     ParseIntError,
 };
 
+// Helper Functions
+
 /**
  * @brief Helper function for popping the stack
  *
@@ -84,6 +90,18 @@ inline auto pop(std::stack<T> &stack) -> T
     auto temp = stack.top();
     stack.pop();
     return temp;
+}
+
+/**
+ * @brief Helper function for getting user input
+ *
+ * @param __dst
+ * @param __msg
+ */
+static inline auto input(std::string &__dst, const char *__msg) -> void
+{
+    std::cout << __msg;
+    std::getline(std::cin, __dst);
 }
 
 /**
@@ -141,7 +159,7 @@ public:
      * @brief Evaluate Math Expressions
      *
      * @param __src
-     * @return Result<i64, ErrorKind>
+     * @return Result<f64, ErrorKind>
      */
     auto evaluate(const std::string &__src) -> Result<f64, ErrorKind>
     {
@@ -171,6 +189,7 @@ private:
      * @brief Evaluating Shunting Yard Algorithm AST using recursive approach
      *
      * @param __src
+     * @return ErrorKind
      */
     auto calculate(std::stack<Token> &__src) -> ErrorKind
     {
@@ -336,10 +355,10 @@ private:
     }
 
     /**
-     * @brief Parse string into a i64
+     * @brief Parse string into a f64
      *
      * @param __src
-     * @return Result<i64, ErrorKind>
+     * @return Result<f64, ErrorKind>
      */
     auto parse_int(const std::string &__src) -> Result<f64, ErrorKind>
     {
@@ -354,12 +373,6 @@ private:
         }
     }
 };
-
-static inline auto input(std::string &__dst, const char *__msg) -> void
-{
-    std::cout << __msg;
-    std::getline(std::cin, __dst);
-}
 
 auto main(i32 argc, char **argv) -> i32
 {
