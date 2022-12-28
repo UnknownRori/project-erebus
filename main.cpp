@@ -39,6 +39,8 @@ using Result = std::tuple<T, Y>;
 
 // Macros
 
+#define loop while (true)
+
 /**
  * @brief Check if the passed stack is empty, if true it will return IF_TRUE
  */
@@ -175,7 +177,7 @@ auto main(i32 argc, char **argv) -> i32
               << "Usage : every expression should be seperated by spaces!\n\n";
 
     auto solver = MathSolver();
-    while (true)
+    loop
     {
         std::string buffer;
         input(buffer, ">> ");
