@@ -1,5 +1,5 @@
 /**
- * @file MathSolver
+ * @file main.cpp
  * @author UnknownRori (68576836+UnknownRori@users.noreply.github.com)
  * @brief A simple program to solve simple math expressions
  * @version 1.0
@@ -175,8 +175,8 @@ private:
 
 auto main(i32 argc, char **argv) -> i32
 {
-    std::cout << "===== Simple Math Solver =====\n"
-              << "Usage : every expression should be seperated by spaces!\n\n";
+    std::cout << "===== Project Ἔρεβος - Simple Math Solver =====\n"
+              << "Usage : Write math expression, invalid keyword will be ignored!\n\n";
 
     auto solver = MathSolver();
     loop
