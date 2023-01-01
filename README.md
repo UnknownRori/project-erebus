@@ -13,7 +13,7 @@ Last assignment of first Semester of my College, though my assignment is differe
 > git clone https://github.com/UnknownRori/project-erebus
 
 # Enter directory
-> cd simple-math-solver
+> cd project-erebus
 
 # Build & Run
 > make
