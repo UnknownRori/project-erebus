@@ -101,6 +101,7 @@ enum TokenType
     Subtract,
     Multiply,
     Divide,
+    Modulo,
     PowerOperator,
     OpenParenthesis,
     CloseParenthesis,
@@ -405,13 +406,14 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Multiply, op3.get_value() * op2.get_value());
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Divide, op3.get_value() / op2.get_value());
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::PowerOperator, std::pow(op3.get_value(), op2.get_value()));
+    PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Modulo, std::fmod(op3.get_value(), op2.get_value()));
 
     return ErrorKind::None;
 }
 
 auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>, ErrorKind>
 {
-    std::regex my_regex("([a-zA-Z]+)|\\(|\\)|[-]?((\\d+\\.?\\d*)|(\\.\\d+))|\\*|\\^|\\-|\\+|\\/");
+    std::regex my_regex("([a-zA-Z]+)|\\(|\\)|[-]?((\\d+\\.?\\d*)|(\\.\\d+))|\\*|\\^|\\-|\\+|\\/|%");
     auto math_begin = std::sregex_iterator(__src.begin(), __src.end(), my_regex);
     auto math_end = std::sregex_iterator();
 
@@ -433,6 +435,7 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "-", Token(TokenType::Subtract, 1, true));
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "*", Token(TokenType::Multiply, 2, true));
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "/", Token(TokenType::Divide, 2, true));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "%", Token(TokenType::Modulo, 2, true));
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "^", Token(TokenType::PowerOperator, 3, false));
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "(", Token(TokenType::OpenParenthesis));
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == ")", Token(TokenType::CloseParenthesis));
