@@ -43,6 +43,43 @@ using Result = std::tuple<T, Y>;
 #define loop while (true)
 
 /**
+ * @brief If condition true then push value to vector and continue, only work in loop
+ */
+#define IF_TRUE_PUSH_VEC_N_CONTINUE(VEC, CONDITION, VALUE) \
+    if (CONDITION)                                         \
+    {                                                      \
+        VEC.push_back(VALUE);                              \
+        continue;                                          \
+    }
+
+/**
+ * @brief Resolve Function Token and push it to stack
+ */
+#define PUSH_RESOLVED_FUNCTION_TOKEN_STACK(STACK, OP, IS_EQUAL, VALUE) \
+    if (OP.get_function_type() == IS_EQUAL)                            \
+    {                                                                  \
+        STACK.push(CREATE_NUMBER_TOKEN(VALUE));                        \
+        return ErrorKind::None;                                        \
+    }
+
+/**
+ * @brief Resolve Operand and push it to stack
+ */
+#define PUSH_RESOLVE_OP_TOKEN_STACK(STACK, OP, IS_EQUAL, VALUE) \
+    if (OP.get_token() == IS_EQUAL)                             \
+    {                                                           \
+        STACK.push(CREATE_NUMBER_TOKEN(VALUE));                 \
+        return ErrorKind::None;                                 \
+    }
+
+#define IF_TRUE_LBITSHIFT_OS(OSTREAM, CONDITION, VALUE) \
+    if (CONDITION)                                      \
+    {                                                   \
+        OSTREAM << " '" << VALUE << "' ";               \
+        return OSTREAM;                                 \
+    }
+
+/**
  * @brief Check if the passed stack is empty, if true it will return IF_TRUE
  */
 #define CHECK_IF_EMPTY(STACK, IF_TRUE) \
@@ -259,50 +296,26 @@ const bool &Token::is_left_associative() const { return this->m_is_left_associat
 
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
-    if (token.m_type == TokenType::Number)
-    {
-        os << " '" << token.m_value << "' ";
-        return os;
-    }
-
     if (token.m_type == TokenType::Function)
     {
-        if (token.m_func_type == FunctionType::Sin)
-            os << " 'sin' ";
-        if (token.m_func_type == FunctionType::Cos)
-            os << " 'cos' ";
-        if (token.m_func_type == FunctionType::Tan)
-            os << " 'tan' ";
-        if (token.m_func_type == FunctionType::Acos)
-            os << " 'acos' ";
-        if (token.m_func_type == FunctionType::Atan)
-            os << " 'atan' ";
-        if (token.m_func_type == FunctionType::Sqrt)
-            os << " 'sqrt' ";
-        if (token.m_func_type == FunctionType::Log)
-            os << " 'log' ";
-        if (token.m_func_type == FunctionType::Floor)
-            os << " 'floor' ";
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Sin, "sin");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Cos, "cos");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Tan, "tan");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Asin, "Asin");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Acos, "Acos");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Atan, "Atan");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Sqrt, "Sqrt");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Log, "Log");
+        IF_TRUE_LBITSHIFT_OS(os, token.m_func_type == FunctionType::Floor, "Floor");
     }
 
-    if (token.m_type == TokenType::Plus)
-        os << " '+' ";
-    else if (token.m_type == TokenType::Subtract)
-        os << " '-' ";
-    else if (token.m_type == TokenType::Multiply)
-        os << " '*' ";
-    else if (token.m_type == TokenType::Divide)
-        os << " '/' ";
-    else if (token.m_type == TokenType::PowerOperator)
-        os << " '^' ";
-    else if (token.m_type == TokenType::OpenParenthesis)
-        os << " '(' ";
-    else if (token.m_type == TokenType::CloseParenthesis)
-        os << " ')' ";
-    else if (token.m_type == TokenType::CloseParenthesis)
-        os << " ')' ";
-
-    return os;
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::Plus, "+");
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::Subtract, "-");
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::Multiply, "*");
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::Divide, "/");
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::PowerOperator, "^");
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::OpenParenthesis, "(")
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::CloseParenthesis, ")");
 }
 
 // Math Solver Class
@@ -347,38 +360,17 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
 
     if (op1.get_token() == TokenType::Function)
     {
-        switch (op1.get_function_type())
-        {
-        case FunctionType::Sin:
-            __src.push(CREATE_NUMBER_TOKEN(std::sin(op2.get_value())));
-            break;
-        case FunctionType::Cos:
-            __src.push(CREATE_NUMBER_TOKEN(std::cos(op2.get_value())));
-            break;
-        case FunctionType::Tan:
-            __src.push(CREATE_NUMBER_TOKEN(std::tan(op2.get_value())));
-            break;
-        case FunctionType::Acos:
-            __src.push(CREATE_NUMBER_TOKEN(std::acos(op2.get_value())));
-            break;
-        case FunctionType::Asin:
-            __src.push(CREATE_NUMBER_TOKEN(std::asin(op2.get_value())));
-            break;
-        case FunctionType::Atan:
-            __src.push(CREATE_NUMBER_TOKEN(std::atan(op2.get_value())));
-            break;
-        case FunctionType::Sqrt:
-            __src.push(CREATE_NUMBER_TOKEN(std::sqrt(op2.get_value())));
-            break;
-        case FunctionType::Log:
-            __src.push(CREATE_NUMBER_TOKEN(std::log(op2.get_value())));
-            break;
-        case FunctionType::Floor:
-            __src.push(CREATE_NUMBER_TOKEN(std::floor(op2.get_value())));
-            break;
-        }
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Sin, std::sin(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Cos, std::cos(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Tan, std::tan(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Acos, std::acos(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Asin, std::asin(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Atan, std::atan(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Sqrt, std::sqrt(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Log, std::log(op2.get_value()));
+        PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Floor, std::floor(op2.get_value()));
 
-        return ErrorKind::None;
+        return ErrorKind::SyntaxError;
     }
 
     CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
@@ -388,31 +380,11 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
     CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
     auto op3 = pop(__src);
 
-    switch (op1.get_token())
-    {
-    case TokenType::Plus:
-        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() + op2.get_value()));
-        break;
-
-    case TokenType::Subtract:
-        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() - op2.get_value()));
-        break;
-
-    case TokenType::Multiply:
-        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() * op2.get_value()));
-        break;
-
-    case TokenType::Divide:
-        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() / op2.get_value()));
-        break;
-
-    case TokenType::PowerOperator:
-        __src.push(CREATE_NUMBER_TOKEN(std::pow(op3.get_value(), op2.get_value())));
-        break;
-
-    default:
-        break;
-    }
+    PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Plus, op3.get_value() + op2.get_value());
+    PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Subtract, op3.get_value() - op2.get_value());
+    PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Multiply, op3.get_value() * op2.get_value());
+    PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Divide, op3.get_value() / op2.get_value());
+    PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::PowerOperator, std::pow(op3.get_value(), op2.get_value()));
 
     return ErrorKind::None;
 }
@@ -437,40 +409,24 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
 
         std::transform(token.begin(), token.end(), token.begin(), ::tolower);
 
-        if (token == "+")
-            tokens.push_back(Token(TokenType::Plus, 1, true));
-        else if (token == "-")
-            tokens.push_back(Token(TokenType::Subtract, 1, true));
-        else if (token == "*")
-            tokens.push_back(Token(TokenType::Multiply, 2, true));
-        else if (token == "/")
-            tokens.push_back(Token(TokenType::Divide, 2, true));
-        else if (token == "^")
-            tokens.push_back(Token(TokenType::PowerOperator, 3, false));
-        else if (token == "(")
-            tokens.push_back(Token(TokenType::OpenParenthesis));
-        else if (token == ")")
-            tokens.push_back(Token(TokenType::CloseParenthesis));
-        else if (token == "sin")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Sin));
-        else if (token == "cos")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Cos));
-        else if (token == "tan")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Tan));
-        else if (token == "acos")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Acos));
-        else if (token == "asin")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Asin));
-        else if (token == "atan")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Atan));
-        else if (token == "sqrt")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Sqrt));
-        else if (token == "log")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Log));
-        else if (token == "floor")
-            tokens.push_back(Token(TokenType::Function, FunctionType::Floor));
-        else
-            return {tokens, ErrorKind::SyntaxError};
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "+", Token(TokenType::Plus, 1, true));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "-", Token(TokenType::Subtract, 1, true));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "*", Token(TokenType::Multiply, 2, true));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "/", Token(TokenType::Divide, 2, true));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "^", Token(TokenType::PowerOperator, 3, false));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "(", Token(TokenType::OpenParenthesis));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == ")", Token(TokenType::CloseParenthesis));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "sin", Token(TokenType::Function, FunctionType::Sin));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "cos", Token(TokenType::Function, FunctionType::Cos));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "tan", Token(TokenType::Function, FunctionType::Tan));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "acos", Token(TokenType::Function, FunctionType::Acos));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "asin", Token(TokenType::Function, FunctionType::Asin));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "atan", Token(TokenType::Function, FunctionType::Atan));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "sqrt", Token(TokenType::Function, FunctionType::Sqrt));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "log", Token(TokenType::Function, FunctionType::Log));
+        IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "floor", Token(TokenType::Function, FunctionType::Floor));
+
+        return {tokens, ErrorKind::SyntaxError};
     }
 
     return {tokens, ErrorKind::None};
