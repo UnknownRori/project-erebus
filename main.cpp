@@ -327,6 +327,9 @@ auto MathSolver::evaluate(const std::string &__src) -> Result<f64, ErrorKind>
     if (err3 != ErrorKind::None)
         return {-1, err3};
 
+    if (res.size() != 1)
+        return {-1, ErrorKind::SyntaxError};
+
     return {res.top().get_value(), ErrorKind::None};
 }
 
