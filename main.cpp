@@ -411,7 +411,7 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
 
 auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>, ErrorKind>
 {
-    std::regex my_regex("([a-zA-Z]+)|\\(|\\)|(-?[0-9]+\\.?[0-9]++?)|\\*|\\^|\\-|\\+|\\/");
+    std::regex my_regex("([a-zA-Z]+)|\\(|\\)|[-]?((\\d+\\.?\\d*)|(\\.\\d+))|\\*|\\^|\\-|\\+|\\/");
     auto math_begin = std::sregex_iterator(__src.begin(), __src.end(), my_regex);
     auto math_end = std::sregex_iterator();
 
