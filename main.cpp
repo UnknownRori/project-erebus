@@ -541,6 +541,9 @@ auto MathSolver::parse(const std::vector<Token> &__src) -> Result<std::stack<Tok
 
         if (token.get_token() == TokenType::CloseParenthesis)
         {
+            if (parenthesis_count == 0)
+                return {output, ErrorKind::SyntaxError};
+
             parenthesis_count--;
 
             while (true)
