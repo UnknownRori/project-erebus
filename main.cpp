@@ -314,8 +314,10 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
     IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::Multiply, "*");
     IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::Divide, "/");
     IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::PowerOperator, "^");
-    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::OpenParenthesis, "(")
+    IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::OpenParenthesis, "(");
     IF_TRUE_LBITSHIFT_OS(os, token.m_type == TokenType::CloseParenthesis, ")");
+
+    return os;
 }
 
 // Math Solver Class
