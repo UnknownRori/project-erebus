@@ -48,6 +48,8 @@ using Result = std::tuple<T, Y>;
     if (STACK.empty())                 \
         return IF_TRUE;
 
+#define CREATE_NUMBER_TOKEN(VAL) Token(TokenType::Number, VAL)
+
 // Enums
 
 /**
@@ -287,34 +289,36 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
     if (__src.top().get_token() != TokenType::Number)
         this->calculate(__src);
 
+    CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
     auto op2 = pop(__src);
 
     CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
     if (__src.top().get_token() != TokenType::Number)
         this->calculate(__src);
 
+    CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
     auto op3 = pop(__src);
 
     switch (op1.get_token())
     {
     case TokenType::Plus:
-        __src.push(Token(TokenType::Number, op3.get_value() + op2.get_value()));
+        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() + op2.get_value()));
         break;
 
     case TokenType::Subtract:
-        __src.push(Token(TokenType::Number, op3.get_value() - op2.get_value()));
+        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() - op2.get_value()));
         break;
 
     case TokenType::Multiply:
-        __src.push(Token(TokenType::Number, op3.get_value() * op2.get_value()));
+        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() * op2.get_value()));
         break;
 
     case TokenType::Divide:
-        __src.push(Token(TokenType::Number, op3.get_value() / op2.get_value()));
+        __src.push(CREATE_NUMBER_TOKEN(op3.get_value() / op2.get_value()));
         break;
 
     case TokenType::PowerOperator:
-        __src.push(Token(TokenType::Number, std::pow(op3.get_value(), op2.get_value())));
+        __src.push(CREATE_NUMBER_TOKEN(std::pow(op3.get_value(), op2.get_value())));
         break;
 
     default:
@@ -338,7 +342,7 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
         auto [num, err] = this->parse_int(token);
         if (err != ErrorKind::ParseIntError)
         {
-            tokens.push_back(Token(TokenType::Number, num));
+            tokens.push_back(CREATE_NUMBER_TOKEN(num));
             continue;
         }
 
