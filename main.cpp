@@ -155,6 +155,12 @@ inline auto pop(std::stack<T> &stack) -> T;
 static inline auto input(std::string &__dst, const char *__msg) -> void;
 
 /**
+ * @brief Helper function to print help
+ *
+ */
+static inline auto print_help() -> void;
+
+/**
  * @brief Class for representing Token
  *
  */
@@ -242,8 +248,13 @@ auto main(i32 argc, char **argv) -> i32
         std::string buffer;
         input(buffer, ">> ");
 
-        if (buffer.find("exit") != std::string::npos)
+        if (buffer.find("exit") != std::string::npos || buffer.find("q") != std::string::npos)
             break;
+        if (buffer.find("help") != std::string::npos)
+        {
+            print_help();
+            continue;
+        }
 
         auto [result, err] = solver.evaluate(buffer);
 
@@ -274,6 +285,13 @@ static inline auto input(std::string &__dst, const char *__msg) -> void
 {
     std::cout << __msg;
     std::getline(std::cin, __dst);
+}
+
+static inline auto print_help() -> void
+{
+    std::cout << "\nSupported Operand\t: '+', '-', '*', '/', '^'\n"
+              << "Supported Function\t: 'sin', 'cos', 'tan', 'acos', 'asin', 'atan', 'sqrt', 'log', 'floor'\n"
+              << "example\t: sin(4*(2+8)^2) it will resulted -0.8509193596\n\n";
 }
 
 // Token Class
