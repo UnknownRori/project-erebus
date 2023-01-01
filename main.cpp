@@ -290,7 +290,7 @@ static inline auto input(std::string &__dst, const char *__msg) -> void
 
 static inline auto print_help() -> void
 {
-    std::cout << "\nSupported Operand\t: '+', '-', '*', '/', '^'\n"
+    std::cout << "\nSupported Operand\t: '+', '-', '*', '/', '^', '%'\n"
               << "Supported Function\t: 'sin', 'cos', 'tan', 'acos', 'asin', 'atan', 'sqrt', 'log', 'floor'\n"
               << "example\t: sin(4*(2+8)^2) it will resulted -0.8509193596\n\n";
 }
