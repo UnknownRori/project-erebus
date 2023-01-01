@@ -241,7 +241,7 @@ private:
 auto main(i32 argc, char **argv) -> i32
 {
     std::cout << "===== Project Ἔρεβος - Simple Math Solver =====\n"
-              << "Usage : Write math expression, invalid keyword will be ignored!\n\n";
+              << "Usage : Write math expression, invalid keyword will trigger Syntax Error!\n\n";
 
     auto solver = MathSolver();
     loop
@@ -413,15 +413,78 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
 
 auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>, ErrorKind>
 {
-    std::regex my_regex("([a-zA-Z]+)|\\(|\\)|[-]?((\\d+\\.?\\d*)|(\\.\\d+))|\\*|\\^|\\-|\\+|\\/|%");
-    auto math_begin = std::sregex_iterator(__src.begin(), __src.end(), my_regex);
-    auto math_end = std::sregex_iterator();
+    std::vector<std::string> tokenized;
+
+    std::size_t i = 0;
+    while (i < __src.length())
+    {
+        if (__src[i] == ' ' || __src[i] == ',')
+        {
+            i++;
+            continue;
+        }
+
+        if (std::isalpha(__src[i]))
+        {
+            std::size_t start = i;
+            while (std::isalpha(__src[i]))
+                i++;
+
+            tokenized.push_back(__src.substr(start, i - start));
+            continue;
+        }
+
+        if (__src[i] == '(')
+        {
+            tokenized.push_back(__src.substr(i, 1));
+            i++;
+
+            std::size_t start = i;
+            if (__src[i] == '-')
+            {
+                i++;
+                while (std::isdigit(__src[i]))
+                    i++;
+
+                tokenized.push_back(__src.substr(start, i - start));
+                continue;
+            }
+            continue;
+        }
+
+        if (__src[i] == '-' && i == 0)
+        {
+            std::size_t start = i;
+            i++;
+            while (std::isdigit(__src[i]))
+                i++;
+
+            tokenized.push_back(__src.substr(start, i - start));
+            continue;
+        }
+
+        if (!std::isdigit(__src[i]))
+        {
+            tokenized.push_back(__src.substr(i, 1));
+            i++;
+            continue;
+        }
+
+        if (std::isdigit(__src[i]))
+        {
+            std::size_t start = i;
+            while (std::isdigit(__src[i]))
+                i++;
+
+            tokenized.push_back(__src.substr(start, i - start));
+            continue;
+        }
+        i++;
+    }
 
     std::vector<Token> tokens;
-    for (auto i = math_begin; i != math_end; ++i)
+    for (auto token : tokenized)
     {
-        auto token = (*i).str();
-
         auto [num, err] = this->parse_int(token);
         if (err != ErrorKind::ParseIntError)
         {
