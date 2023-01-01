@@ -16,6 +16,7 @@
 #include <string>
 #include <cmath>
 #include <regex>
+#include <bits/stdc++.h>
 
 // Constants
 
@@ -65,7 +66,24 @@ enum TokenType
     Divide,
     PowerOperator,
     OpenParenthesis,
-    CloseParenthesis
+    CloseParenthesis,
+    Function
+};
+
+/**
+ * @brief Define Type of Function
+ */
+enum FunctionType
+{
+    Sin,
+    Cos,
+    Tan,
+    Acos,
+    Asin,
+    Atan,
+    Sqrt,
+    Log,
+    Floor,
 };
 
 /**
@@ -107,6 +125,7 @@ class Token
 {
 private:
     TokenType m_type;
+    FunctionType m_func_type;
     i32 m_precedence;
     f64 m_value;
     bool m_is_left_associativity;
@@ -115,9 +134,11 @@ public:
     Token() = default;
     Token(TokenType type, f64 value);
     Token(TokenType type);
+    Token(TokenType type, FunctionType func_type);
     Token(TokenType type, i32 precedence, bool is_left_associativity);
 
     const TokenType &get_token() const;
+    const FunctionType &get_function_type() const;
     const f64 &get_value() const;
     const i32 &get_precedence() const;
     const bool &is_left_associative() const;
@@ -225,10 +246,13 @@ Token::Token(TokenType type, f64 value)
 
 Token::Token(TokenType type) : m_type(type) {}
 
+Token::Token(TokenType type, FunctionType func_type) : m_type(type), m_func_type(func_type) {}
+
 Token::Token(TokenType type, i32 precedence, bool is_left_associativity)
     : m_type(type), m_precedence(precedence), m_is_left_associativity(is_left_associativity) {}
 
 const TokenType &Token::get_token() const { return this->m_type; }
+const FunctionType &Token::get_function_type() const { return this->m_func_type; }
 const f64 &Token::get_value() const { return this->m_value; }
 const i32 &Token::get_precedence() const { return this->m_precedence; }
 const bool &Token::is_left_associative() const { return this->m_is_left_associativity; }
@@ -236,8 +260,32 @@ const bool &Token::is_left_associative() const { return this->m_is_left_associat
 std::ostream &operator<<(std::ostream &os, const Token &token)
 {
     if (token.m_type == TokenType::Number)
+    {
         os << " '" << token.m_value << "' ";
-    else if (token.m_type == TokenType::Plus)
+        return os;
+    }
+
+    if (token.m_type == TokenType::Function)
+    {
+        if (token.m_func_type == FunctionType::Sin)
+            os << " 'sin' ";
+        if (token.m_func_type == FunctionType::Cos)
+            os << " 'cos' ";
+        if (token.m_func_type == FunctionType::Tan)
+            os << " 'tan' ";
+        if (token.m_func_type == FunctionType::Acos)
+            os << " 'acos' ";
+        if (token.m_func_type == FunctionType::Atan)
+            os << " 'atan' ";
+        if (token.m_func_type == FunctionType::Sqrt)
+            os << " 'sqrt' ";
+        if (token.m_func_type == FunctionType::Log)
+            os << " 'log' ";
+        if (token.m_func_type == FunctionType::Floor)
+            os << " 'floor' ";
+    }
+
+    if (token.m_type == TokenType::Plus)
         os << " '+' ";
     else if (token.m_type == TokenType::Subtract)
         os << " '-' ";
@@ -249,6 +297,8 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
         os << " '^' ";
     else if (token.m_type == TokenType::OpenParenthesis)
         os << " '(' ";
+    else if (token.m_type == TokenType::CloseParenthesis)
+        os << " ')' ";
     else if (token.m_type == TokenType::CloseParenthesis)
         os << " ')' ";
 
@@ -291,6 +341,42 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
 
     CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
     auto op2 = pop(__src);
+
+    if (op1.get_token() == TokenType::Function)
+    {
+        switch (op1.get_function_type())
+        {
+        case FunctionType::Sin:
+            __src.push(CREATE_NUMBER_TOKEN(std::sin(op2.get_value())));
+            break;
+        case FunctionType::Cos:
+            __src.push(CREATE_NUMBER_TOKEN(std::cos(op2.get_value())));
+            break;
+        case FunctionType::Tan:
+            __src.push(CREATE_NUMBER_TOKEN(std::tan(op2.get_value())));
+            break;
+        case FunctionType::Acos:
+            __src.push(CREATE_NUMBER_TOKEN(std::acos(op2.get_value())));
+            break;
+        case FunctionType::Asin:
+            __src.push(CREATE_NUMBER_TOKEN(std::asin(op2.get_value())));
+            break;
+        case FunctionType::Atan:
+            __src.push(CREATE_NUMBER_TOKEN(std::atan(op2.get_value())));
+            break;
+        case FunctionType::Sqrt:
+            __src.push(CREATE_NUMBER_TOKEN(std::sqrt(op2.get_value())));
+            break;
+        case FunctionType::Log:
+            __src.push(CREATE_NUMBER_TOKEN(std::log(op2.get_value())));
+            break;
+        case FunctionType::Floor:
+            __src.push(CREATE_NUMBER_TOKEN(std::floor(op2.get_value())));
+            break;
+        }
+
+        return ErrorKind::None;
+    }
 
     CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
     if (__src.top().get_token() != TokenType::Number)
@@ -346,6 +432,8 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
             continue;
         }
 
+        std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+
         if (token == "+")
             tokens.push_back(Token(TokenType::Plus, 1, true));
         else if (token == "-")
@@ -360,6 +448,24 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
             tokens.push_back(Token(TokenType::OpenParenthesis));
         else if (token == ")")
             tokens.push_back(Token(TokenType::CloseParenthesis));
+        else if (token == "sin")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Sin));
+        else if (token == "cos")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Cos));
+        else if (token == "tan")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Tan));
+        else if (token == "acos")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Acos));
+        else if (token == "asin")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Asin));
+        else if (token == "atan")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Atan));
+        else if (token == "sqrt")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Sqrt));
+        else if (token == "log")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Log));
+        else if (token == "floor")
+            tokens.push_back(Token(TokenType::Function, FunctionType::Floor));
         else
             return {tokens, ErrorKind::SyntaxError};
     }
