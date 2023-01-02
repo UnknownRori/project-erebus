@@ -443,7 +443,7 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
             if (__src[i] == '-')
             {
                 i++;
-                while (std::isdigit(__src[i]))
+                while (std::isdigit(__src[i]) || __src[i] == '.')
                     i++;
 
                 tokenized.push_back(__src.substr(start, i - start));
@@ -473,7 +473,7 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
         if (std::isdigit(__src[i]))
         {
             std::size_t start = i;
-            while (std::isdigit(__src[i]))
+            while (std::isdigit(__src[i]) || __src[i] == '.')
                 i++;
 
             tokenized.push_back(__src.substr(start, i - start));
