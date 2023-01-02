@@ -88,6 +88,17 @@ using Result = std::tuple<T, Y>;
 
 #define CREATE_NUMBER_TOKEN(VAL) Token(TokenType::Number, VAL)
 
+#define PARSE_INT_FROM_STR(SRC, START, I)                                 \
+    {                                                                     \
+        bool is_not_decimal = true;                                       \
+        while (std::isdigit(SRC[I]) || (SRC[I] == '.' && is_not_decimal)) \
+        {                                                                 \
+            if (SRC[I] == '.')                                            \
+                is_not_decimal = false;                                   \
+            I++;                                                          \
+        }                                                                 \
+    }
+
 // Enums
 
 /**
@@ -443,8 +454,8 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
             if (__src[i] == '-')
             {
                 i++;
-                while (std::isdigit(__src[i]) || __src[i] == '.')
-                    i++;
+
+                PARSE_INT_FROM_STR(__src, start, i);
 
                 tokenized.push_back(__src.substr(start, i - start));
                 continue;
@@ -456,8 +467,8 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
         {
             std::size_t start = i;
             i++;
-            while (std::isdigit(__src[i]))
-                i++;
+
+            PARSE_INT_FROM_STR(__src, start, i);
 
             tokenized.push_back(__src.substr(start, i - start));
             continue;
@@ -473,8 +484,8 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
         if (std::isdigit(__src[i]))
         {
             std::size_t start = i;
-            while (std::isdigit(__src[i]) || __src[i] == '.')
-                i++;
+
+            PARSE_INT_FROM_STR(__src, start, i);
 
             tokenized.push_back(__src.substr(start, i - start));
             continue;
