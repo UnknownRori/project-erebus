@@ -15,8 +15,7 @@
 #include <tuple>
 #include <string>
 #include <cmath>
-#include <regex>
-#include <bits/stdc++.h>
+#include <functional>
 
 // Constants
 
@@ -173,6 +172,13 @@ static inline auto input(std::string &__dst, const char *__msg) -> void;
 static inline auto print_help() -> void;
 
 /**
+ * @brief A algorithm helper function
+ *
+ */
+template <typename _InputIterator, typename F>
+static inline auto transform(_InputIterator start, _InputIterator end, _InputIterator dst, std::function<void(F)> lambda) -> void;
+
+/**
  * @brief Class for representing Token
  *
  */
@@ -304,6 +310,15 @@ static inline auto print_help() -> void
     std::cout << "\nSupported Operand\t: '+', '-', '*', '/', '^', '%'\n"
               << "Supported Function\t: 'sin', 'cos', 'tan', 'acos', 'asin', 'atan', 'sqrt', 'log', 'floor'\n"
               << "example\t: sin(4*(2+8)^2) it will resulted -0.8509193596\n\n";
+}
+
+template <typename _InputIterator, typename F>
+static inline auto transform(_InputIterator start, _InputIterator end, _InputIterator dst, std::function<void(F)> lambda) -> void
+{
+    for (; start != end; start++)
+    {
+        lambda(*start);
+    }
 }
 
 // Token Class
@@ -503,7 +518,7 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
             continue;
         }
 
-        std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+        transform(token.begin(), token.end(), token.begin(), ::tolower);
 
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "+", Token(TokenType::Plus, 1, true));
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "-", Token(TokenType::Subtract, 1, true));
