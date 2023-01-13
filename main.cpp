@@ -266,7 +266,7 @@ auto main(i32 argc, char **argv) -> i32
         std::string buffer;
         input(buffer, ">> ");
 
-        if (buffer.find("exit") != std::string::npos || buffer.find("q") != std::string::npos)
+        if (buffer.find("exit") != std::string::npos || (buffer.find("q") != std::string::npos && buffer.size() == 1))
             break;
         if (buffer.find("help") != std::string::npos)
         {
