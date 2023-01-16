@@ -218,7 +218,11 @@ public:
      * @param __src
      * @return Result<f64, ErrorKind>
      */
-    auto evaluate(const std::string &__src) -> Result<f64, ErrorKind>;
+    auto evaluate(const std::string &__src) -> std::tuple<f64, f64, TokenType, ErrorKind>;
+
+private:
+    f64 division_result_from_modulo = 0;
+    TokenType last_operation = TokenType::Plus;
 
 private:
     /**
@@ -274,14 +278,17 @@ auto main(i32 argc, char **argv) -> i32
             continue;
         }
 
-        auto [result, err] = solver.evaluate(buffer);
+        auto [primary_result, secondary_result, last_operation, err] = solver.evaluate(buffer);
 
         if (err == ErrorKind::SyntaxError)
             std::cout << "Error: Syntax Error\n\n";
         else if (err == ErrorKind::ParseIntError)
             std::cout << "Error: Failed to parse integer value\n\n";
+        else if (last_operation == TokenType::Modulo)
+            std::cout << "Result division from modulo : " << secondary_result << "\n"
+                      << "Remainder\t\t: " << primary_result << "\n\n";
         else
-            std::cout << "Result\t: " << result << "\n\n";
+            std::cout << "Result\t: " << primary_result << "\n\n";
     }
 
     std::cout << "\n===Thank you for using this tool!===" << std::endl;
@@ -367,30 +374,33 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
 
 // Math Solver Class
 
-auto MathSolver::evaluate(const std::string &__src) -> Result<f64, ErrorKind>
+auto MathSolver::evaluate(const std::string &__src) -> std::tuple<f64, f64, TokenType, ErrorKind>
 {
+    this->last_operation = TokenType::Plus;
+    this->division_result_from_modulo = -1;
+
     auto [tokens, err] = this->tokenize(__src);
 
     if (err != ErrorKind::None)
-        return {-1, err};
+        return {-1, this->division_result_from_modulo, this->last_operation, err};
 
     auto [res, err2] = this->parse(tokens);
 
     if (err2 != ErrorKind::None)
-        return {-1, err2};
+        return {-1, this->division_result_from_modulo, this->last_operation, err2};
 
     if (res.size() == 1 && res.top().get_token() == TokenType::Number)
-        return {pop(res).get_value(), ErrorKind::None};
+        return {pop(res).get_value(), this->division_result_from_modulo, this->last_operation, ErrorKind::None};
 
     auto err3 = this->calculate(res);
 
     if (err3 != ErrorKind::None)
-        return {-1, err3};
+        return {-1, this->division_result_from_modulo, this->last_operation, err3};
 
     if (res.size() != 1)
-        return {-1, ErrorKind::SyntaxError};
+        return {-1, this->division_result_from_modulo, this->last_operation, ErrorKind::SyntaxError};
 
-    return {res.top().get_value(), ErrorKind::None};
+    return {res.top().get_value(), this->division_result_from_modulo, this->last_operation, ErrorKind::None};
 }
 
 auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
@@ -426,6 +436,10 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
 
     CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
     auto op3 = pop(__src);
+
+    this->last_operation = op1.get_token();
+    if (this->last_operation == TokenType::Modulo)
+        this->division_result_from_modulo = op3.get_value() / op2.get_value();
 
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Plus, op3.get_value() + op2.get_value());
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Subtract, op3.get_value() - op2.get_value());
