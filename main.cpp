@@ -285,8 +285,8 @@ auto main(i32 argc, char **argv) -> i32
         else if (err == ErrorKind::ParseIntError)
             std::cout << "Error: Failed to parse integer value\n\n";
         else if (last_operation == TokenType::Modulo)
-            std::cout << "Result division from modulo : " << secondary_result << "\n"
-                      << "Remainder\t\t: " << primary_result << "\n\n";
+            std::cout << "Result division from modulo\t: " << secondary_result << "\n"
+                      << "Remainder\t\t\t: " << primary_result << "\n\n";
         else
             std::cout << "Result\t: " << primary_result << "\n\n";
     }
