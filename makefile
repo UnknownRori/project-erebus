@@ -1,5 +1,5 @@
 CC = g++
-FLAG = -Wall -Werror -g -std=c++2a
+FLAG = -Wall -Werror -g -std=c++2a -save-temps=obj
 
 MAIN = main.cpp
 OUT = main
@@ -10,8 +10,11 @@ all: build
 debug: build
 	gdb ./$(OUT)
 
-clean: build
+clean:
 	rm ./$(OUT)
+	rm ./$(OUT).ii
+	rm ./$(OUT).s
+	rm ./$(OUT).o
 
 build:
 	$(CC) $(MAIN) -o $(OUT) $(FLAG)
