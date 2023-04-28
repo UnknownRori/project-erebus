@@ -1,5 +1,7 @@
 /.vscode/
 *.ii
+*.a
 *.o
 *.s
 *.exe
+/dist/
