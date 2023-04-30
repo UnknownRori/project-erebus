@@ -1,7 +1,7 @@
 /**
  * @file macros.hpp
  * @author UnknownRori (68576836+UnknownRori@users.noreply.github.com)
- * @brief header file that include erebus.cpp macros
+ * @brief header file that include erebus.cpp macros not for external use
  * @version 0.1
  * @date 2023-04-28
  *
@@ -9,6 +9,7 @@
  *
  */
 
+#pragma once
 #ifndef UNKNOWNRORI_MACROS_PROJECT_EREBUS_HPP
 #define UNKNOWNRORI_MACROS_PROJECT_EREBUS_HPP
 
@@ -29,7 +30,7 @@
     if (OP.get_function_type() == IS_EQUAL)                            \
     {                                                                  \
         STACK.push(CREATE_NUMBER_TOKEN(VALUE));                        \
-        return ErrorKind::None;                                        \
+        return Rori::Math::ErrorKind::None;                            \
     }
 
 /**
@@ -39,7 +40,7 @@
     if (OP.get_token() == IS_EQUAL)                             \
     {                                                           \
         STACK.push(CREATE_NUMBER_TOKEN(VALUE));                 \
-        return ErrorKind::None;                                 \
+        return Rori::Math::ErrorKind::None;                     \
     }
 
 #define IF_TRUE_LBITSHIFT_OS(OSTREAM, CONDITION, VALUE) \

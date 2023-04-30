@@ -10,56 +10,65 @@
  */
 
 #include <iostream>
+#include <csignal>
 #include "./include/erebus.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-// Macros
-
 #define loop while (true)
-
-// Constants
-
+#define THANK_YOU "\n===Thank you for using this tool!===\n"
 #define EXIT_SUCCESS 0
+
+auto signal_handler(int) -> void;
 
 auto main(i32 argc, char **argv) -> i32
 {
-
 #ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8);
-    setvbuf(stdout, nullptr, _IOFBF, 1000);
+    if (!SetConsoleOutputCP(CP_UTF8) && setvbuf(stdout, nullptr, _IOFBF, 1000) != 0)
+    {
+        std::cout << "[Warning]: Failed to change terminal into UTF-8\n";
+    }
 #endif
+
+    signal(SIGINT, signal_handler);
 
     std::cout << "===== Project Ἔρεβος - Simple Math Solver =====\n"
               << "Usage : Write math expression, invalid keyword will trigger Syntax Error!\n\n";
 
-    auto solver = MathSolver();
+    auto solver = Rori::Math::MathSolver();
     loop
     {
         std::string buffer;
-        input(buffer, ">> ");
+        Rori::Math::input(buffer, ">> ");
 
         if (buffer.find("exit") != std::string::npos || (buffer.find("q") != std::string::npos && buffer.size() == 1))
             break;
         if (buffer.find("help") != std::string::npos)
         {
-            print_help();
+            Rori::Math::print_help();
             continue;
         }
 
         auto [result, err] = solver.evaluate(buffer);
 
-        if (err == ErrorKind::SyntaxError)
+        if (err == Rori::Math::ErrorKind::SyntaxError)
             std::cout << "Error: Syntax Error\n\n";
-        else if (err == ErrorKind::ParseIntError)
+        else if (err == Rori::Math::ErrorKind::ParseIntError)
             std::cout << "Error: Failed to parse integer value\n\n";
         else
             std::cout << "Result\t: " << result << "\n\n";
     }
 
-    std::cout << "\n===Thank you for using this tool!===" << std::endl;
+    std::cout << THANK_YOU;
 
     return EXIT_SUCCESS;
+}
+
+auto signal_handler(int __signum) -> void
+{
+    std::cout << THANK_YOU;
+
+    exit(__signum);
 }

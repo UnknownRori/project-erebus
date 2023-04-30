@@ -9,6 +9,7 @@
  *
  */
 
+#pragma once
 #ifndef UNKNOWNRORI_PRIMITIVES_TYPES_HPP
 #define UNKNOWNRORI_PRIMITIVES_TYPES_HPP
 

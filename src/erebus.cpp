@@ -10,26 +10,43 @@
  */
 
 #include <iostream>
+#include <functional>
+#include <stack>
+#include <tuple>
+#include "../include/erebus_internal.hpp"
 #include "../include/erebus.hpp"
 #include "../include/macros.hpp"
 
 // Functions and Classes Definition
 
+static inline auto parse_int(const std::string &__src) -> Result<f64, Rori::Math::ErrorKind>
+{
+    try
+    {
+        f64 result = std::stof(__src);
+        return {result, Rori::Math::ErrorKind::None};
+    }
+    catch (std::invalid_argument &err)
+    {
+        return {-1, Rori::Math::ErrorKind::ParseIntError};
+    }
+}
+
 template <typename T>
-inline auto pop(std::stack<T> &stack) -> T
+static inline auto pop(std::stack<T> &stack) -> T
 {
     auto temp = stack.top();
     stack.pop();
     return temp;
 }
 
-auto input(std::string &__dst, const char *__msg) -> void
+auto Rori::Math::input(std::string &__dst, const char *__msg) -> void
 {
     std::cout << __msg;
     std::getline(std::cin, __dst);
 }
 
-auto print_help() -> void
+auto Rori::Math::print_help() -> void
 {
     std::cout << "\nSupported Operand\t: '+', '-', '*', '/', '^', '%'\n"
               << "Supported Function\t: 'sin', 'cos', 'tan', 'acos', 'asin', 'atan', 'sqrt', 'log', 'floor'\n"
@@ -91,42 +108,42 @@ std::ostream &operator<<(std::ostream &os, const Token &token)
 
 // Math Solver Class
 
-auto MathSolver::evaluate(const std::string &__src) -> Result<f64, ErrorKind>
+auto Rori::Math::MathSolver::evaluate(const std::string &__src) -> Result<f64, Rori::Math::ErrorKind>
 {
-    auto [tokens, err] = this->tokenize(__src);
+    auto [tokens, err] = tokenize(__src);
 
-    if (err != ErrorKind::None)
+    if (err != Rori::Math::ErrorKind::None)
         return {-1, err};
 
-    auto [res, err2] = this->parse(tokens);
+    auto [res, err2] = parse(tokens);
 
-    if (err2 != ErrorKind::None)
+    if (err2 != Rori::Math::ErrorKind::None)
         return {-1, err2};
 
     if (res.size() == 1 && res.top().get_token() == TokenType::Number)
-        return {pop(res).get_value(), ErrorKind::None};
+        return {pop(res).get_value(), Rori::Math::ErrorKind::None};
 
-    auto err3 = this->calculate(res);
+    auto err3 = calculate(res);
 
-    if (err3 != ErrorKind::None)
+    if (err3 != Rori::Math::ErrorKind::None)
         return {-1, err3};
 
     if (res.size() != 1)
-        return {-1, ErrorKind::SyntaxError};
+        return {-1, Rori::Math::ErrorKind::SyntaxError};
 
-    return {res.top().get_value(), ErrorKind::None};
+    return {res.top().get_value(), Rori::Math::ErrorKind::None};
 }
 
-auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
+static auto calculate(std::stack<Token> &__src) -> Rori::Math::ErrorKind
 {
-    CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
+    CHECK_IF_EMPTY(__src, Rori::Math::ErrorKind::SyntaxError);
     auto op1 = pop(__src);
 
-    CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
+    CHECK_IF_EMPTY(__src, Rori::Math::ErrorKind::SyntaxError);
     if (__src.top().get_token() != TokenType::Number)
-        this->calculate(__src);
+        calculate(__src);
 
-    CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
+    CHECK_IF_EMPTY(__src, Rori::Math::ErrorKind::SyntaxError);
     auto op2 = pop(__src);
 
     if (op1.get_token() == TokenType::Function)
@@ -141,14 +158,14 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
         PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Log, std::log(op2.get_value()));
         PUSH_RESOLVED_FUNCTION_TOKEN_STACK(__src, op1, FunctionType::Floor, std::floor(op2.get_value()));
 
-        return ErrorKind::SyntaxError;
+        return Rori::Math::ErrorKind::SyntaxError;
     }
 
-    CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
+    CHECK_IF_EMPTY(__src, Rori::Math::ErrorKind::SyntaxError);
     if (__src.top().get_token() != TokenType::Number)
-        this->calculate(__src);
+        calculate(__src);
 
-    CHECK_IF_EMPTY(__src, ErrorKind::SyntaxError);
+    CHECK_IF_EMPTY(__src, Rori::Math::ErrorKind::SyntaxError);
     auto op3 = pop(__src);
 
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Plus, op3.get_value() + op2.get_value());
@@ -158,10 +175,10 @@ auto MathSolver::calculate(std::stack<Token> &__src) -> ErrorKind
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::PowerOperator, std::pow(op3.get_value(), op2.get_value()));
     PUSH_RESOLVE_OP_TOKEN_STACK(__src, op1, TokenType::Modulo, std::fmod(op3.get_value(), op2.get_value()));
 
-    return ErrorKind::None;
+    return Rori::Math::ErrorKind::None;
 }
 
-auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>, ErrorKind>
+static auto tokenize(const std::string &__src) -> Result<std::vector<Token>, Rori::Math::ErrorKind>
 {
     std::vector<std::string> tokenized;
 
@@ -235,8 +252,8 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
     std::vector<Token> tokens;
     for (auto token : tokenized)
     {
-        auto [num, err] = this->parse_int(token);
-        if (err != ErrorKind::ParseIntError)
+        auto [num, err] = parse_int(token);
+        if (err != Rori::Math::ErrorKind::ParseIntError)
         {
             tokens.push_back(CREATE_NUMBER_TOKEN(num));
             continue;
@@ -262,13 +279,13 @@ auto MathSolver::tokenize(const std::string &__src) -> Result<std::vector<Token>
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "log", Token(TokenType::Function, FunctionType::Log));
         IF_TRUE_PUSH_VEC_N_CONTINUE(tokens, token == "floor", Token(TokenType::Function, FunctionType::Floor));
 
-        return {tokens, ErrorKind::SyntaxError};
+        return {tokens, Rori::Math::ErrorKind::SyntaxError};
     }
 
-    return {tokens, ErrorKind::None};
+    return {tokens, Rori::Math::ErrorKind::None};
 }
 
-auto MathSolver::parse(const std::vector<Token> &__src) -> Result<std::stack<Token>, ErrorKind>
+static auto parse(const std::vector<Token> &__src) -> Result<std::stack<Token>, Rori::Math::ErrorKind>
 {
     std::stack<Token> operator_stack;
     std::stack<Token> output;
@@ -292,7 +309,7 @@ auto MathSolver::parse(const std::vector<Token> &__src) -> Result<std::stack<Tok
         if (token.get_token() == TokenType::CloseParenthesis)
         {
             if (parenthesis_count == 0)
-                return {output, ErrorKind::SyntaxError};
+                return {output, Rori::Math::ErrorKind::SyntaxError};
 
             parenthesis_count--;
 
@@ -331,20 +348,7 @@ auto MathSolver::parse(const std::vector<Token> &__src) -> Result<std::stack<Tok
         output.push(pop(operator_stack));
 
     if (parenthesis_count != 0)
-        return {output, ErrorKind::SyntaxError};
+        return {output, Rori::Math::ErrorKind::SyntaxError};
 
-    return {output, ErrorKind::None};
-}
-
-auto MathSolver::parse_int(const std::string &__src) -> Result<f64, ErrorKind>
-{
-    try
-    {
-        f64 result = std::stof(__src);
-        return {result, ErrorKind::None};
-    }
-    catch (std::invalid_argument &err)
-    {
-        return {-1, ErrorKind::ParseIntError};
-    }
+    return {output, Rori::Math::ErrorKind::None};
 }
