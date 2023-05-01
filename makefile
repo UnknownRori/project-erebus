@@ -34,6 +34,7 @@ erebus-build-lib:
 
 erebus-build-staticlib:
 	$(CC) $(EREBUS_SRC) -c -o ./$(EREBUS_OBJ) $(FLAG)
+	[ ! -e ./dist ] && mkdir ./dist
 	ar rcs ./dist/$(EREBUS_OUT_STATIC_LIB) ./$(EREBUS_OBJ)
 	rm ./$(EREBUS_OBJ)
 
