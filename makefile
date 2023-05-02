@@ -16,6 +16,10 @@ LINKER_PATH = -L./dist
 all: build
 	./$(MAIN_OUT)
 
+# Create dist directory if not exists
+mkdir-dist:
+	([ ! -e ./dist ] && mkdir dist) || [ -e ./dist ]
+
 debug: build
 	gdb ./$(MAIN_OUT)
 
@@ -32,9 +36,8 @@ build-static: erebus-build-staticlib
 erebus-build-lib:
 	make erebus-build-staticlib
 
-erebus-build-staticlib:
+erebus-build-staticlib: mkdir-dist
 	$(CC) $(EREBUS_SRC) -c -o ./$(EREBUS_OBJ) $(FLAG)
-	[ ! -e ./dist ] && mkdir ./dist
 	ar rcs ./dist/$(EREBUS_OUT_STATIC_LIB) ./$(EREBUS_OBJ)
 	rm ./$(EREBUS_OBJ)
 
