@@ -4,7 +4,7 @@ Last assignment of first Semester of my College, though my assignment is differe
 
 ## Demo
 
-*Future
+![](https://github.com/UnknownRori/project-erebus/blob/main/screenshot/screenshot-1.png)
 
 ## 🚀 Building & Running
 
