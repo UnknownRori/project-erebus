@@ -27,6 +27,9 @@ clean:
 	rm ./$(MAIN_OUT)
 	rm ./dist/*.a
 
+build-ui: erebus-build-staticlib
+	$(CC) ui.cpp -o ui.exe -lraylib -lopengl32 -lgdi32 -lwinmm ./dist/liberebus.a -static -static-libgcc
+
 build: erebus-build-staticlib
 	$(CC) $(MAIN_SRC) -o $(MAIN_OUT) $(FLAG) $(LINKER_PATH) $(EREBUS_SHARED_FLAG)
 
