@@ -4,12 +4,15 @@ STATIC_LINK_STD = -static -static-libgcc
 
 MAIN_SRC = main.cpp
 MAIN_OUT = erebus
+UI_SRC = ui.cpp
+UI_OUT = erebus-ui
 
 EREBUS_SRC = ./src/erebus.cpp
 EREBUS_OBJ = erebus.o
 EREBUS_OUT_STATIC_LIB = liberebus.a
 EREBUS_OUT_SHARED_LIB = liberebus.so
 EREBUS_SHARED_FLAG = -lerebus
+EREBUS_UI_FLAG = -lraylib -lopengl32 -lgdi32 -lwinmm
 
 LINKER_PATH = -L./dist
 
@@ -25,10 +28,11 @@ debug: build
 
 clean:
 	rm ./$(MAIN_OUT)
+	rm ./$(UI_OUT)
 	rm ./dist/*.a
 
 build-ui: erebus-build-staticlib
-	$(CC) ui.cpp -o ui.exe -lraylib -lopengl32 -lgdi32 -lwinmm ./dist/liberebus.a -static -static-libgcc
+	$(CC) $(UI_SRC) -o $(UI_OUT) $(EREBUS_UI_FLAG) $(LINKER_PATH) $(EREBUS_SHARED_FLAG) $(STATIC_LINK_STD)
 
 build: erebus-build-staticlib
 	$(CC) $(MAIN_SRC) -o $(MAIN_OUT) $(FLAG) $(LINKER_PATH) $(EREBUS_SHARED_FLAG)
