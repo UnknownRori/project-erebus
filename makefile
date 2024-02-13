@@ -40,6 +40,15 @@ build: erebus-build-staticlib
 build-static: erebus-build-staticlib
 	$(CC) $(MAIN_SRC) -o $(MAIN_OUT) $(FLAG) $(LINKER_PATH) $(EREBUS_SHARED_FLAG) $(STATIC_LINK_STD)
 
+# Make sure you have emscripten
+# Also put wasm compiled of raylib to the libs directory
+# build-web: erebus-build-weblib
+# Probably also need to use raylib.h too
+build-web:
+	em++ ./ui.cpp ./src/erebus.cpp ./dist/liberebusweb.a ./libs/libraylib.a -o ./web/index.html -s USE_GLFW=3 -DPLATFORM_WEB -s ASSERTIONS=2 -Wall -sEXPORT_EXCEPTION_HANDLING_HELPERS -fwasm-exceptions --profiling-funcs
+
+# em++ ./ui.cpp ./src/erebus.cpp ./dist/liberebusweb.a ./libs/libraylib.a -o ./web/index.html -s USE_GLFW=3 -DPLATFORM_WEB -s ASSERTIONS=2 -Os
+
 erebus-build-lib:
 	make erebus-build-staticlib
 
@@ -50,3 +59,7 @@ erebus-build-staticlib: mkdir-dist
 
 erebus-clean:
 	rm ./$(EREBUS_OBJ)
+
+# erebus-build-weblib:
+# 	em++ ./src/erebus.cpp -c dist/erebusweb.o
+# 	emar rcs dist/liberebusweb.a dist/erebusweb.o
